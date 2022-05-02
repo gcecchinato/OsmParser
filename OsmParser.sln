@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32120.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OsmParser", "OsmParser\OsmParser.csproj", "{414DE803-9107-415E-89D7-97AB6671F715}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{414DE803-9107-415E-89D7-97AB6671F715}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{414DE803-9107-415E-89D7-97AB6671F715}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{414DE803-9107-415E-89D7-97AB6671F715}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{414DE803-9107-415E-89D7-97AB6671F715}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D3FB9FE-4FD1-4816-B733-452D257DA3C2}
+	EndGlobalSection
+EndGlobal
