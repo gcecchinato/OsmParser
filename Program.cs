@@ -10,47 +10,55 @@ namespace OsmParser
 {
     internal class Program
     {
-        
-
-        //C:\Projects\DesktopApps\OsmParser\OsmParser\bin\Debug\net5.0
-        //OsmParser.exe C:\Temp\Berlin\berlin-latest.osm.pbf C:\Temp\Berlin\postal_codes.txt
-
         static void Main(string[] args)
         {
-            string sOsmFilePath = "";
-            string sPostalCodesFilePath = "";
+            string sPbfFilePath = "";
+            string sOutputTextFile = "";
 
-            if (Debugger.IsAttached)
+            //check args
+            if (args.Count() == 2)
             {
-                sOsmFilePath = @"C:\Temp\Berlin\berlin-latest.osm.pbf";
-                sPostalCodesFilePath = @"C:\Temp\Berlin\postal_codes.txt";
-            }
-            else if (args.Count() == 2)
-            { 
-                sOsmFilePath = args[0];
-                sPostalCodesFilePath = args[1];
+                sPbfFilePath = args[0];
+                sOutputTextFile = args[1];
             }
             else
+            {
+                Console.WriteLine($"Wrong input parameters!");
+                Console.WriteLine($"Input example --> OsmParser.exe pbf_filename output_textfile_name.txt");
+                Console.ReadKey();
                 return;
-
-            if (!File.Exists(sOsmFilePath))
-            {
-                Console.WriteLine($"File do not exist:  {sOsmFilePath}");
-                Console.ReadKey();
             }
-            var extension = Path.GetExtension(sOsmFilePath).ToLower();
-            if (extension != ".pbf")
+                
+            //check input file exist
+            if (!File.Exists(sPbfFilePath))
             {
-                Console.WriteLine($"Wrong File Extension: {extension}");
+                Console.WriteLine($"File do not exist:  {sPbfFilePath}");
                 Console.ReadKey();
+                return;
+            }
+
+            //check input and output files extension
+            var pbfFIleExtension = Path.GetExtension(sPbfFilePath).ToLower();
+            if (pbfFIleExtension != ".pbf")
+            {
+                Console.WriteLine($"Wrong File Extension: {pbfFIleExtension}");
+                Console.ReadKey();
+                return;
+            }
+            var txtFileExtension = Path.GetExtension(sOutputTextFile).ToLower();
+            if (txtFileExtension != ".txt")
+            {
+                Console.WriteLine($"Wrong File Extension: {txtFileExtension}");
+                Console.ReadKey();
+                return;
             }
 
             //Reading .pbf
-            List<string> lPostalCodes;
+            Dictionary<string,string> dcPostalCodes;
             try
             {
                 Console.WriteLine($"Reading .pbf file...");
-                lPostalCodes = GetPostalCodes(sOsmFilePath);
+                dcPostalCodes = GetPostalCodes(sPbfFilePath);
             }
             catch (Exception ex)
             {
@@ -59,11 +67,12 @@ namespace OsmParser
                 return;
             }
 
-            //writing txt result file
+            //writing output txt file
             try
             {
                 Console.WriteLine($"Creating postal codes file");
-                File.WriteAllLines(sPostalCodesFilePath, lPostalCodes);
+                var lines = GetPostalCodeLinesFromDictionary(dcPostalCodes);
+                File.WriteAllLines(sOutputTextFile, lines);
             }
             catch (Exception ex)
             {
@@ -76,7 +85,15 @@ namespace OsmParser
             Console.ReadKey();
         }
 
-        private static List<string> GetPostalCodes(string sOsmFilePath)
+        private static List<string> GetPostalCodeLinesFromDictionary(Dictionary<string, string> dc)
+        {
+            var list = new List<string>();
+            foreach (var entry in dc.OrderBy(i=>i.Key))
+                list.Add(entry.Key + " " +entry.Value);
+            return list;
+        }
+
+        private static Dictionary<string,string> GetPostalCodes(string sOsmFilePath)
         {
             var dcAllPostalCodes  = new Dictionary<string, string>();
 
@@ -87,9 +104,12 @@ namespace OsmParser
                 foreach (var element in source)
                 {
                     var lElementTags = element.Tags;
-                    if (lElementTags.Any(i => i.Key == "postal_code"))
+
+                    if (lElementTags.Any(i => i.Key == "addr:suburb"))
                     {
-                        var sPostalCodeRaw = lElementTags.FirstOrDefault(i => i.Key == "postal_code").Value;
+                        var sPostalCodeRaw = lElementTags.FirstOrDefault(i => i.Key == "addr:postcode").Value;
+                        if (string.IsNullOrWhiteSpace(sPostalCodeRaw))
+                            continue;
                         var sPostalCodeOnlyDigits = Regex.Replace(sPostalCodeRaw, "[^0-9.]", " ");//substitute non digit with whitespace
                         var sPostalCodeClean = Regex.Replace(sPostalCodeOnlyDigits, @"\s+", ";");//substitute whitespaces with separator
                         var lPostalCodes = sPostalCodeClean.Split(';');
@@ -97,15 +117,16 @@ namespace OsmParser
                         {
                             if (dcAllPostalCodes.ContainsKey(sPostalCode))
                                 continue;
-                            dcAllPostalCodes.Add(sPostalCode, sPostalCode);
+
+                            var sName = lElementTags.FirstOrDefault(i => i.Key == "addr:suburb").Value?.ToString();
+                            dcAllPostalCodes.Add(sPostalCode, sName);
                         }
 
                     }
                 }
             }
 
-
-            return dcAllPostalCodes.Select(i=>i.Key).OrderBy(i=>i).ToList();
+            return dcAllPostalCodes;
         }
     }
 }
